@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Backend de la suerte",
+  "name": "Backend de la suerte - Desafío WRP",
   "icons": [
     {
       "src": "favicon.ico",

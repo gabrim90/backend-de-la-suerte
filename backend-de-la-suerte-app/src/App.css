@@ -38,6 +38,14 @@ div,ul {
   box-shadow: 0px 10px 13px -7px #000000, 5px 5px 15px 5px rgba(0,0,0,0);
   height: 175px;
   margin: 25px 25px;
+  transition: 0.3s;
+}
+
+.emoji-item:hover {
+  background-color: #676ff8;
+  color:  #FFF;
+  font-weight: bold;
+
 }
 
 .emoji-item .emoji-icon {
