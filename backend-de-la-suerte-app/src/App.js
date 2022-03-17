@@ -22,9 +22,10 @@ const App = () => {
 
       let { data, error, status } = await supabase
         .from('emoji_db')
-        .select(`*`)
+        .select('*')
+        .order('id', { ascending: true })
 
-      if (error && status !== 406) {
+      if (error && status !== 200) {
         throw error
       }
 
