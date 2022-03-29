@@ -1,6 +1,6 @@
 - [Backend de la suerte](#backend-de-la-suerte)
-  - [Desarrollo de la "partida"](#desarrollo-de-la-partida)
 - [Respuestas al desafío](#respuestas-al-desafío)
+  - [Desarrollo de la "partida"](#desarrollo-de-la-partida)
 - [Detalle de la aplicación](#detalle-de-la-aplicación)
   - [Estructura del Backend](#estructura-del-backend)
     - [Tablas](#tablas)
@@ -16,13 +16,27 @@
 # Backend de la suerte
 La idea para este segundo reto ha sido ir ampliando la aplicación que empecé en el reto 1. Ahora ya tenemos una aplicación más completa, pero con la idea de que siga siendo un **cliente tonto** y que el contenido y las configuraciones principales vengan del **Backend**.
 
-El desarrollo es simple, te registras como un minero (usuario y contraseña en plano) y vas picando diferentes items y eligiendo un itinerario hasta que das con el codiciado oro 👑 . Cada nivel que 'picas' te lleva a descubrir nuevos items. Finalmente encuentras la ansiada recompensa y aparece un resumen del itinierario que has escogido. 
+El desarrollo es simple, te registras como un minero (usuario y contraseña en plano) y vas picando (eligiendo) diferentes items hasta que das con el codiciado oro 👑 . Cada nivel que 'picas' te lleva a descubrir nuevos items. Finalmente encuentras la ansiada recompensa y aparece un resumen del itinierario (items escogidos) que has realizado. 
 
 El número de items a picar está predefinido en el backend como se pedía y es fijo para todas las partidas.
 
 Las decisiones no son relevantes, puesto que cuando se elige un item, se almacena como que se ha realizado la acción de picar y se guarda el registro. Independientemente del camino elegido siempre se llega al mismo final. 
 
-Los items que se muestran en cada nivel de profundidad (cada vez que se pica) son configurables desde el Back y el titular también también.
+Los items que se muestran en cada nivel de profundidad (cada vez que se pica) son configurables desde el Back y el texto que aparece en cada nivel también.
+
+Cada vez que se pica se comprueba el número de registros almacenados y se comprueba si se ha llegado al máximo de la partida.
+
+# Respuestas al desafío
+Todo comienza con el registro de un nuevo **minero**, simplemente se recogen sus datos (usuario/contraseña) para registrarlo en la tabla de 
+[Mineros](#mineros) y así obtener la **id** para ese minero.
+
+Seguidamente con la **id** del minero se genera una nueva partida. La tabla [Partidas](#partidas) es la que guarda la configuración global de las partidas. En cada **registro** que se añade a la partida hay una **serie de valores de configuración por defecto**, como el número **máximo de items a picar**, la categoría final... etc. 
+
+De esta forma el número de veces que se pica queda predefinido en el **backend**.
+
+Cada vez que se pica se registra en la tabla [Intentos](#intentos) asociados a la partida. 
+- Se registra el **timestamp** del instante en el que se ha picado. 
+- Se va comprobando el número de registros para esa partida cada vez que se pica con los predefinidos en la configuración de la partida (tabla [Partidas](#partidas)).
 
 ## Desarrollo de la "partida"
 El transcurso de la partida es el siguiente:
@@ -34,12 +48,6 @@ El transcurso de la partida es el siguiente:
 6. Se comprueba si el número de intentos registrados coincide con el número de intentos máximo para la partida. Si no coincide se busca la siguiente categoría. 
 7. Se vuelve a repetir el proceso (paso 3) hasta que se llega a la categoría final. 
 8. Una vez que se ha llegado al máximo número de intentos se muestra la recompensa y se recoge el itinerario seguido a través de los intentos ordenados, por defecto ya vienen ordenados por id, lo cual representa también el orden cronológico. 
-
-# Respuestas al desafío
-Todo comienza con el registro de un nuevo **minero**, simplemente se recogen sus datos (usuario/contraseña) para registrarlo en la tabla de 
-[Mineros](#mineros) y así obtener la **id** para ese minero.
-
-Seguidamente con la **id** del minero se genera una nueva partida. La tabla [Partidas](#partidas) es la que guarda la configuración global de las partidas. En cada **registro** que se añade a la partida hay una **serie de valores de configuración por defecto**, como el número **máximo de items a picar**, cual es el final... etc. 
 
 # Detalle de la aplicación
 
