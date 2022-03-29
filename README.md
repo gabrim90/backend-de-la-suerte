@@ -17,7 +17,7 @@
 # Backend de la suerte
 La idea para este segundo reto ha sido ir ampliando la aplicación que empecé en el reto 1. Ahora ya tenemos una aplicación más completa, pero con la idea de que siga siendo un **cliente tonto** y que el contenido y las configuraciones principales vengan del **Backend**.
 
-El desarrollo es simple, te registras como un minero (usuario y contraseña en plano) y vas picando (eligiendo) diferentes items hasta que das con el codiciado oro 👑 . Cada nivel que 'picas' te lleva a descubrir nuevos items. Finalmente encuentras la ansiada recompensa y aparece un resumen del itinierario (items escogidos) que has realizado. 
+El desarrollo es simple, te registras como un minero (usuario y contraseña) y vas picando (eligiendo) diferentes items hasta que das con el codiciado oro 👑 . Cada nivel que 'picas' te lleva a descubrir nuevos items. Finalmente encuentras la ansiada recompensa y aparece un resumen del itinierario (items escogidos) que has realizado. 
 
 El número de items a picar está predefinido en el backend como se pedía y es fijo para todas las partidas.
 
