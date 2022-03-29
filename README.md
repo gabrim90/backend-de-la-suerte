@@ -4,13 +4,14 @@
 - [Detalle de la aplicación](#detalle-de-la-aplicación)
   - [Estructura del Backend](#estructura-del-backend)
     - [Tablas](#tablas)
-      - [Mineros](#mineros)
       - [Partidas](#partidas)
       - [Categorias](#categorias)
       - [Emoji_db](#emoji_db)
       - [Intentos](#intentos)
+      - [Gestión de usuarios](#gestión-de-usuarios)
   - [Frontend](#frontend)
     - [Login](#login)
+    - [Pantalla inicio](#pantalla-inicio)
     - [Itinerario](#itinerario)
     - [Final](#final)
 # Backend de la suerte
@@ -27,8 +28,7 @@ Los items que se muestran en cada nivel de profundidad (cada vez que se pica) so
 Cada vez que se pica se comprueba el número de registros almacenados y se comprueba si se ha llegado al máximo de la partida.
 
 # Respuestas al desafío
-Todo comienza con el registro de un nuevo **minero**, simplemente se recogen sus datos (usuario/contraseña) para registrarlo en la tabla de 
-[Mineros](#mineros) y así obtener la **id** para ese minero.
+Todo comienza con el registro de un nuevo **minero**, simplemente se recogen sus datos (usuario/contraseña) para registrarlo como usuario en la plataforma y así obtener la **id** para ese minero.
 
 Seguidamente con la **id** del minero se genera una nueva partida. La tabla [Partidas](#partidas) es la que guarda la configuración global de las partidas. En cada **registro** que se añade a la partida hay una **serie de valores de configuración por defecto**, como el número **máximo de items a picar**, la categoría final... etc. 
 
@@ -38,9 +38,11 @@ Cada vez que se pica se registra en la tabla [Intentos](#intentos) asociados a l
 - Se registra el **timestamp** del instante en el que se ha picado. 
 - Se va comprobando el número de registros para esa partida cada vez que se pica con los predefinidos en la configuración de la partida (tabla [Partidas](#partidas)).
 
+Una vez que se llega al final, se muestra el resumen de la partida, con los items elegidos y la opción de volver a empezar.
+
 ## Desarrollo de la "partida"
 El transcurso de la partida es el siguiente:
-1. Se registra el minero
+1. Se registra o inica sesión el minero
 2. Se inicializa la partida. Se crean los valores de configuración, como por ejemplo el nivel máximo que se picará, o la categoría de items inicial. Estos valores son los valores por defecto para la columna dentro de la tabla [Partidas](#partidas).
 3. El minero va eligiendo items en distintos niveles de profundidad. Cada nivel de profundidad es una **categoria** que tiene asociada una serie de items (emojis). La configuración de la partidad define cual es la categoría inicial. 
 4. El minero "pica" (elige) cada uno de los items, de tal forma que va pasando de categoría, como si fueran niveles de profundidad. 
@@ -48,6 +50,7 @@ El transcurso de la partida es el siguiente:
 6. Se comprueba si el número de intentos registrados coincide con el número de intentos máximo para la partida. Si no coincide se busca la siguiente categoría. 
 7. Se vuelve a repetir el proceso (paso 3) hasta que se llega a la categoría final. 
 8. Una vez que se ha llegado al máximo número de intentos se muestra la recompensa y se recoge el itinerario seguido a través de los intentos ordenados, por defecto ya vienen ordenados por id, lo cual representa también el orden cronológico. 
+9. Se puede volver a empezar la partida.
 
 # Detalle de la aplicación
 
@@ -56,18 +59,7 @@ Para este segundo reto he realizado ya un backend más completo con varias tabla
 
 ### Tablas
 
-#### Mineros
-Los mineros se registran en la tabla de mineros. Las contraseñas se guardan en plano. 
-La estructura es la siguiente:
 
-| campo | tipo | Descripción |
-| ------------- | ------------- | ------------- |
-| id  | bigint | Id |
-| created_at  | timestamp with time zone | Timestamp del registro |
-| userName  | text | Nombre de usuario |
-| userPassword  | text | Contraseña del usuario  |
-
-![Tabla mineros](doc/imgs/tabla-mineros.png)
 
 #### Partidas
 
@@ -83,6 +75,7 @@ Tabla que define los valores de una partida determinada. Define los valores para
 | maxAttempts  | int | Número de intentos para la partida. El valor por defecto de esta columna define el número de veces a picar. |
 | id_categoriaInicial  | bigint | **FK**. Categoría (listado de emojis) inicial  |
 | id_categoriafinal  | bigint | **FK**. Categoría (listado de emojis) final. Se usa el valor por defecto. |
+| id_user  | bigint | **FK**. UUID del usuario. |
   
 ![Tabla partidas](doc/imgs/tabla-partidas.png)
 
@@ -127,6 +120,12 @@ Aquí se registra cada vez que un minero pica un Item. Se guarda la relación co
 
 ![Tabla intentos](doc/imgs/tabla-intentos.png)
 
+#### Gestión de usuarios
+
+Los usuarios se registran en la plataforma **Supabase** utilizando la API que tiene para ello. Simplemente se crea un usuario mediante un email.
+
+![Usuarios](doc/imgs/usuarios.png)
+
 
 ## Frontend
 
@@ -134,8 +133,12 @@ Aquí se registra cada vez que un minero pica un Item. Se guarda la relación co
 Pantalla de login donde se registra el minero:
 ![Login](doc/imgs/frontend-login.png)
 
+### Pantalla inicio
+Antes de empezar a picar y tras el login/registro vemos la siguiente pantalla:
+![Itinerario](doc/imgs/frontend-inicio.png)
+
 ### Itinerario
-Cada capa del itinerario se muestra así:
+Cada categoría del itinerario se muestra así:
 ![Itinerario](doc/imgs/frontend-itinerario.png)
 ### Final
 Pantalla de final donde se muestra la recompensa y el resumen del camino seguido:
