@@ -1,24 +1,21 @@
 import './App.css';
-import {
-  createClient
-} from '@supabase/supabase-js'
+import { supabase } from './supabase';
+
 import {
   useState,
   useEffect
 } from 'react'
 import { LoadingSpinner } from './components/LoadingSpinner';
+import { Auth } from './components/Auth';
+import { Account } from './components/Account';
 import { EmojiCard } from './components/EmojiCard';
 
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 
 const App = () => {
     const [loading, setLoading] = useState(false)
     const [emojis, setEmojis] = useState([])
-    const [scene, setScene] = useState(1)
     const [partidaStarted, setPartidaStarted] = useState(false)
     const [partida, setPartida] = useState({})
     const [currentAttempts, setCurrentAttempts] = useState(-1)
@@ -29,6 +26,17 @@ const App = () => {
     const [currentCat, setCurrentCat] = useState({})
     const [currentCatId, setCurrentCatId] = useState(0)
     const [attemptSummary, setAttemptSummary] = useState([])
+    const [session, setSession] = useState(null)
+    const [numeroPartidas, setNumeroPartidas] = useState(0)
+
+    useEffect(() => {
+      setSession(supabase.auth.session())
+  
+      supabase.auth.onAuthStateChange((_event, session) => {
+        setSession(session)
+      })
+    }, [])
+
 
     // Para que cargue solo una vez los primeros emojis
     useEffect(() => {
@@ -56,6 +64,18 @@ const App = () => {
         getEmojisByCat(partida.id_categoriafinal)
       }
     }, [maxAttemptsReached])
+
+    useEffect(() => {
+      if(session){
+        getNumeroPartidas()
+      }
+    }, [session])
+
+    
+    const showLoading = async (showLoading) => {
+      setLoading(showLoading)
+
+    }
 
 
     const getCategoryById = async (catId) => {
@@ -220,21 +240,23 @@ const App = () => {
         console.log(error.message)
       }
     }
+    const reIniciarPartida = () => {
+      getNumeroPartidas()
+
+      setPartidaStarted(false)
+      setMaxAttemptsReached(false)
+    }
+
 
     const iniciarPartida = () => {
 
-      if(userName===''||userPassword===''){
-        alert('Por favor introduce usuario y contraseña')
-        return 
-      }
-
+      setMaxAttemptsReached(false)
 
 
       setLoading(true)
-      registrarUsuario().then(userData => {
+      
 
-        console.log({'response':userData})
-        registrarPartida(userData.id).then(response => {
+        registrarPartida(supabase.auth.user().id).then(response => {
           getCategoryById(response.id_categoriaInicial).then(catResponse => {
             setCurrentCat(catResponse)
             setCurrentCatId(catResponse.id)
@@ -247,38 +269,37 @@ const App = () => {
 
             
         })
-      })
+
       
 
     }
-    const registrarUsuario = async () => {
-      // Registro el usuario
+
+
+    // Make a function that gets the number of registers in table partidas for a user id
+    const getNumeroPartidas = async () => {
+      console.log('getNumeroPartidas')
       try {
         const {
           data,
           error
         } = await supabase
-          .from('mineros')
-          .insert({'userName':userName, 'userPassword':userPassword})
-        if (error != null) {
+          .from('partidas')
+          .select('*')
+          .eq('id_user', supabase.auth.user().id)
+        if (error !== null) {
           throw error
         }
         if(data){
-          console.log({'data':data})
-          return data[0]
+          console.log(data.length)
+          setNumeroPartidas(data.length)
         } 
         
       } catch (error) {
-        alert(error)
+        console.log(error.message)
       } finally {
       }
 
-
-
     }
-
-
-
 
     const registrarPartida = async (userId) => {
       try {
@@ -287,7 +308,7 @@ const App = () => {
           error
         } = await supabase
           .from('partidas')
-          .insert({'id_minero':userId})
+          .insert({'id_user':userId})
         if (error !== null) {
           throw error
         }
@@ -317,13 +338,16 @@ const App = () => {
       return ( <LoadingSpinner></LoadingSpinner> )
     }
     if(!partidaStarted){
-      return <div className='container'><h1>¡Hola {userName.length !== 0 && userName}{userName.length === 0 && 'Malandrín'}!</h1><p>Para empezar a picar, primero debes decirme tu nombre y después haz click en <strong>empezar</strong></p><p>En esta pequeña aventurilla, deberás ir eligiendo tu camino, para encontrar el preciado tesoro...</p>
-      <p className="red">Los campos son obligatorios para empezar</p>
-
+      return <div className='container'><h1>¡Hola {!session ? 'Malandrín' : session.user.email}!</h1>
+      {!session ? <div><p>Para empezar esta aventura debes inscirbirte como minero, eligiendo un <strong>email</strong> y una <strong> contraseña</strong> después haz click en <strong>registrar</strong>.</p><p>O puedes <strong>Iniciar sesión</strong> si ya estás registrado.</p></div> : <div><h3>¡Bienvenido!</h3><p>Cuando estés listo puedes hacer click en <strong>Empezar a picar</strong></p><p>Has jugado un total de <strong>{numeroPartidas}</strong> partidas</p> </div> }
       <div className='loginForm'>
-      <input required value={userName} onInput={e => setUserName(e.target.value)} type="text" name="userName" placeholder="Paquito el minero"></input>
-      <input required value={userPassword} onInput={e => setUserPassword(e.target.value)} type="password" name="userPassword" placeholder="1234"></input>
-      <button onClick={() => iniciarPartida()}>¡Empezar a picar! ⛏</button>
+        {!session ? <Auth showLoading={showLoading} /> : 
+          <div>
+          <button className='start' onClick={() => iniciarPartida()}>¡Empezar a picar! ⛏</button>
+          <Account key={session.user.id} session={session} />
+        </div>      
+        }
+    
       </div>
       </div>
     }
@@ -350,6 +374,8 @@ const App = () => {
           </li>
         ))
       } </ul>
+
+      <button className='restart' onClick={() => reIniciarPartida()}>¡Volver a inicio! ⛏</button>
     </div>
 
     } 
